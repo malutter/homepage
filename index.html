@@ -62,12 +62,13 @@
     width: var(--g);
     height: var(--g);
     background: var(--f);
-    opacity: 0.14;
-    animation: treiben var(--t) ease-in-out var(--v, 0s) infinite alternate;
+    opacity: 0.22;
+    animation: treiben calc(var(--t) * 0.5) ease-in-out var(--v, 0s) infinite alternate;
   }
   @keyframes treiben {
-    from { transform: translate3d(0, 0, 0) rotate(0deg); }
-    to   { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--r)); }
+    from { transform: translate3d(0, 0, 0) rotate(0deg) scale(0.85); }
+    50%  { transform: translate3d(calc(var(--dx) * 1.6), calc(var(--dy) * 0.9), 0) rotate(calc(var(--r) * 2.5)) scale(1.15); }
+    to   { transform: translate3d(calc(var(--dx) * 3), calc(var(--dy) * 3), 0) rotate(calc(var(--r) * 5)) scale(1); }
   }
 
   .seite {
@@ -81,16 +82,41 @@
     flex-direction: column;
   }
 
-  .kopf { padding-bottom: clamp(2rem, 7vw, 5rem); }
+  .kopf {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.75rem 2rem;
+    padding-bottom: clamp(1.5rem, 4vw, 2.5rem);
+    animation: auftauchen 700ms var(--schwung) both;
+  }
   .kopf h1 {
-    margin: 0 0 0.5rem;
+    margin: 0;
     font-size: 1.5rem;
     font-weight: 800;
     letter-spacing: -0.01em;
   }
-  .kopf p { margin: 0; max-width: 34rem; color: var(--leise); }
-  .kopf h1, .kopf p { animation: auftauchen 700ms var(--schwung) both; }
-  .kopf p { animation-delay: 120ms; }
+
+  /* Reiter oben: Home und Info */
+  .reiter { display: flex; gap: 1.75rem; }
+  .reiter a {
+    font-weight: 600;
+    color: var(--leise);
+    text-decoration: none;
+    padding: 0.3rem 0.1rem;
+    border-bottom: 3px solid transparent;
+    transition: color 140ms, border-color 140ms;
+  }
+  .reiter a:hover { color: var(--tinte); }
+  .reiter a[aria-current="page"] { color: var(--tinte); border-bottom-color: var(--tinte); }
+
+  .einleitung {
+    margin: 0 0 clamp(2rem, 7vw, 5rem);
+    max-width: 34rem;
+    color: var(--leise);
+    animation: auftauchen 700ms var(--schwung) 120ms both;
+  }
   @keyframes auftauchen {
     from { opacity: 0; transform: translateY(0.6rem); }
     to   { opacity: 1; transform: none; }
@@ -115,7 +141,10 @@
     transition: transform 900ms var(--schwung);
   }
   @media (min-width: 56rem) {
-    .ziel { grid-template-columns: 1fr 19rem; align-items: end; }
+    .ziel { grid-template-columns: 1fr 19rem; align-items: center; }
+    .ziel .info { text-align: center; }
+    .ziel.ueber { grid-template-columns: 1fr 1fr; align-items: start; }
+    .ziel.ueber .info { text-align: left; }
   }
 
   /* Die Adresse selbst ist das Bild der Seite */
@@ -144,6 +173,11 @@
   }
   .mc .sub { background: var(--gras); color: var(--gras-text); }
   .kasse .sub { background: var(--bernstein); color: var(--bernstein-text); }
+  .nas .sub { background: var(--tinte); color: var(--nebel); }
+  .ueber .sub { background: var(--gras); color: var(--gras-text); }
+  @media (hover: hover) {
+    .ziel.nas:hover .sub { box-shadow: 0.09em 0.09em 0 var(--bernstein); }
+  }
 
   /* Der Block hebt sich an, wenn man über das Ziel fährt */
   @media (hover: hover) {
@@ -162,6 +196,18 @@
   .info { transition: opacity 600ms ease 520ms, transform 700ms var(--schwung) 520ms; }
   .info p { margin: 0 0 1.25rem; }
   .info .klein { font-size: 1rem; color: var(--leise); }
+
+  /* Info-Seite: Steckbrief */
+  .fakten {
+    margin: 0 0 1.5rem;
+    display: grid;
+    grid-template-columns: max-content 1fr;
+    gap: 0.6rem 1.5rem;
+  }
+  .fakten dt { color: var(--leise); }
+  .fakten dd { margin: 0; font-weight: 600; }
+  /* Gelb markierte Stellen sind Platzhalter, die noch ersetzt werden müssen */
+  .platz { background: var(--bernstein); color: var(--bernstein-text); padding: 0 0.3em; font-weight: 600; }
 
   /* Ausgangszustand vor dem Einblenden, nur wenn das Skript läuft */
   .js .ziel:not(.sichtbar)::before { transform: scaleX(0); }
@@ -232,16 +278,34 @@
   <span style="--x:42%; --y:84%; --g:2.5rem; --f:var(--gras);      --t:25s; --dx:50px;  --dy:-40px; --r:-22deg; --v:-12s"></span>
   <span style="--x:30%; --y:26%; --g:1.5rem; --f:var(--tinte);     --t:15s; --dx:-30px; --dy:50px;  --r:30deg;  --v:-5s"></span>
   <span style="--x:56%; --y:6%;  --g:1.75rem;--f:var(--gras);      --t:22s; --dx:35px;  --dy:45px;  --r:-12deg; --v:-14s"></span>
+  <span style="--x:22%; --y:90%; --g:3.25rem;--f:var(--tinte);     --t:20s; --dx:45px;  --dy:-55px; --r:20deg;  --v:-3s"></span>
+  <span style="--x:74%; --y:82%; --g:4rem;   --f:var(--bernstein); --t:24s; --dx:-55px; --dy:-35px; --r:-18deg; --v:-10s"></span>
+  <span style="--x:48%; --y:46%; --g:2.25rem;--f:var(--bernstein); --t:18s; --dx:-40px; --dy:55px;  --r:24deg;  --v:-6s"></span>
+  <span style="--x:2%;  --y:36%; --g:2.75rem;--f:var(--gras);      --t:26s; --dx:60px;  --dy:35px;  --r:-26deg; --v:-11s"></span>
 </div>
 
 <div class="seite">
 
   <header class="kopf">
     <h1>Markus Luttermann</h1>
-    <p>Von hier geht es zu meinem Minecraft-Server und zu meiner Kaffeekasse.</p>
+    <nav class="reiter" aria-label="Seiten">
+      <a href="#home" data-reiter="home">Home</a>
+      <a href="#info" data-reiter="info">Info</a>
+    </nav>
   </header>
 
   <main>
+   <div class="ansicht" id="home">
+    <p class="einleitung">Von hier geht es zu meiner Kaffeekasse, zu meinem Minecraft-Server und zu meinem NAS.</p>
+
+    <section class="ziel kasse" aria-labelledby="kasse-adresse">
+      <h2 class="adresse" id="kasse-adresse"><span class="sub">pp</span><span class="rest">.lutter-mann.de</span></h2>
+      <div class="info">
+        <p>Meine Kaffeekasse bei PayPal. Der Server steht bei mir zu Hause und braucht rund um die Uhr Strom.</p>
+        <a class="knopf" href="https://paypal.me/MarkusLuttermann" rel="noopener">PayPal öffnen</a>
+      </div>
+    </section>
+
     <section class="ziel mc" aria-labelledby="mc-adresse">
       <h2 class="adresse" id="mc-adresse"><span class="sub">mc</span><span class="rest">.lutter-mann.de</span></h2>
       <div class="info">
@@ -252,13 +316,30 @@
       </div>
     </section>
 
-    <section class="ziel kasse" aria-labelledby="kasse-adresse">
-      <h2 class="adresse" id="kasse-adresse"><span class="sub">pp</span><span class="rest">.lutter-mann.de</span></h2>
+    <section class="ziel nas" aria-labelledby="nas-adresse">
+      <h2 class="adresse" id="nas-adresse"><span class="sub">nas</span><span class="rest">.lutter-mann.de</span></h2>
       <div class="info">
-        <p>Meine Kaffeekasse bei PayPal. Der Server steht bei mir zu Hause und braucht rund um die Uhr Strom.</p>
-        <a class="knopf" href="https://paypal.me/MarkusLuttermann" rel="noopener">PayPal öffnen</a>
+        <p>Die Oberfläche meines NAS. Der Zugang ist privat und durch eine Anmeldung geschützt.</p>
+        <a class="knopf" href="https://nas.lutter-mann.de" rel="noopener">NAS öffnen</a>
       </div>
     </section>
+   </div>
+
+   <div class="ansicht" id="info">
+    <p class="einleitung">Ein paar Dinge über mich.</p>
+
+    <section class="ziel ueber" aria-labelledby="ueber-titel">
+      <h2 class="adresse" id="ueber-titel"><span class="sub">Über</span><span class="rest">mich</span></h2>
+      <div class="info">
+        <dl class="fakten">
+          <dt>Name</dt><dd>Markus Luttermann</dd>
+          <dt>Beruf</dt><dd>Elektroingenieur</dd>
+          <dt>Leidenschaft</dt><dd>Hardware-Entwicklung und Gaming</dd>
+        </dl>
+        <p>Ich bin Elektroingenieur mit einer Leidenschaft für Hardware-Entwicklung. Was mich im Beruf antreibt, hört nach Feierabend nicht auf: Ich spiele gern und betreibe dafür meinen eigenen Minecraft-Server auf dem NAS zu Hause. Technik will ich nicht nur benutzen, sondern verstehen und selbst bauen.</p>
+      </div>
+    </section>
+   </div>
   </main>
 
   <footer class="fuss">© Markus Luttermann. Läuft mit Glasfaser.</footer>
@@ -267,6 +348,31 @@
 
 <script>
   (function () {
+    /* Reiter: Home und Info umschalten, gesteuert über #home und #info */
+    var ansichten = document.querySelectorAll('.ansicht');
+    var reiter = document.querySelectorAll('.reiter a');
+    var zeigeAnsicht = function (name) {
+      if (name !== 'info') { name = 'home'; }
+      ansichten.forEach(function (a) { a.hidden = a.id !== name; });
+      reiter.forEach(function (r) {
+        if (r.getAttribute('data-reiter') === name) { r.setAttribute('aria-current', 'page'); }
+        else { r.removeAttribute('aria-current'); }
+      });
+      window.scrollTo(0, 0);
+    };
+    var ausAdresse = function () { return location.hash === '#info' ? 'info' : 'home'; };
+    /* Der Klick schaltet direkt um, auch wenn die Adresse sich nicht ändern lässt */
+    reiter.forEach(function (r) {
+      r.addEventListener('click', function (ereignis) {
+        ereignis.preventDefault();
+        var name = r.getAttribute('data-reiter');
+        zeigeAnsicht(name);
+        try { history.replaceState(null, '', '#' + name); } catch (e) { /* Adresse bleibt, Ansicht wechselt trotzdem */ }
+      });
+    });
+    window.addEventListener('hashchange', function () { zeigeAnsicht(ausAdresse()); });
+    zeigeAnsicht(ausAdresse());
+
     /* Ziele einblenden, sobald sie ins Bild kommen */
     var ziele = document.querySelectorAll('.ziel');
     var zeigen = function (el) { el.classList.add('sichtbar'); };
