@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Markus Luttermann</title>
+<meta name="description" content="Minecraft-Server und Kaffeekasse von Markus Luttermann.">
+<script>document.documentElement.classList.add('js');</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+  /* Farben und Maße an einer Stelle, damit sie leicht zu ändern sind */
+  :root {
+    --nebel: #E8EEF0;      /* Hintergrund */
+    --flaeche: #F7FAFB;    /* helle Fläche für Knöpfe */
+    --tinte: #12222E;      /* Text */
+    --leise: #5A6B76;      /* Nebentext */
+    --linie: #C3CFD5;      /* Trennlinien */
+    --gras: #2F7D32;       /* Minecraft */
+    --gras-text: #FFFFFF;
+    --bernstein: #F2B233;  /* Kaffeekasse */
+    --bernstein-text: #12222E;
+    --schwung: cubic-bezier(0.2, 0.8, 0.2, 1);
+    --feder: cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --nebel: #0F1C25;
+      --flaeche: #182A36;
+      --tinte: #E8EEF0;
+      --leise: #94A6B1;
+      --linie: #2B4050;
+      --gras: #4FA853;
+      --gras-text: #0B1A10;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; background: var(--nebel); }
+  body {
+    margin: 0;
+    color: var(--tinte);
+    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    font-size: 1.125rem;
+    line-height: 1.5;
+    overflow-x: hidden;
+  }
+
+  /* Treibende Blöcke im Hintergrund */
+  .bloecke {
+    position: fixed;
+    inset: 0;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 0;
+  }
+  .bloecke span {
+    position: absolute;
+    left: var(--x);
+    top: var(--y);
+    width: var(--g);
+    height: var(--g);
+    background: var(--f);
+    opacity: 0.14;
+    animation: treiben var(--t) ease-in-out var(--v, 0s) infinite alternate;
+  }
+  @keyframes treiben {
+    from { transform: translate3d(0, 0, 0) rotate(0deg); }
+    to   { transform: translate3d(var(--dx), var(--dy), 0) rotate(var(--r)); }
+  }
+
+  .seite {
+    position: relative;
+    z-index: 1;
+    max-width: 68rem;
+    margin: 0 auto;
+    padding: clamp(1.25rem, 5vw, 3.5rem);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .kopf { padding-bottom: clamp(2rem, 7vw, 5rem); }
+  .kopf h1 {
+    margin: 0 0 0.5rem;
+    font-size: 1.5rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  .kopf p { margin: 0; max-width: 34rem; color: var(--leise); }
+  .kopf h1, .kopf p { animation: auftauchen 700ms var(--schwung) both; }
+  .kopf p { animation-delay: 120ms; }
+  @keyframes auftauchen {
+    from { opacity: 0; transform: translateY(0.6rem); }
+    to   { opacity: 1; transform: none; }
+  }
+
+  .ziel {
+    position: relative;
+    padding: clamp(1.5rem, 4vw, 2.75rem) 0 clamp(2.5rem, 7vw, 4.5rem);
+    display: grid;
+    gap: 1.5rem 3rem;
+  }
+  /* Die Linie über jedem Ziel zeichnet sich von links nach rechts */
+  .ziel::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--tinte);
+    transform-origin: left center;
+    transition: transform 900ms var(--schwung);
+  }
+  @media (min-width: 56rem) {
+    .ziel { grid-template-columns: 1fr 19rem; align-items: end; }
+  }
+
+  /* Die Adresse selbst ist das Bild der Seite */
+  .adresse {
+    margin: 0;
+    font-weight: 800;
+    font-size: clamp(2.25rem, 10vw, 7rem);
+    line-height: 1.02;
+    letter-spacing: -0.035em;
+    overflow-wrap: anywhere;
+  }
+  .adresse .sub {
+    display: inline-block;
+    padding: 0.02em 0.16em 0.08em;
+    margin-bottom: 0.08em;
+    clip-path: inset(-0.3em);
+    transition:
+      clip-path 700ms var(--schwung) 150ms,
+      transform 180ms var(--schwung),
+      box-shadow 180ms var(--schwung);
+  }
+  .adresse .rest {
+    display: block;
+    color: var(--leise);
+    transition: opacity 600ms ease 380ms, transform 700ms var(--schwung) 380ms;
+  }
+  .mc .sub { background: var(--gras); color: var(--gras-text); }
+  .kasse .sub { background: var(--bernstein); color: var(--bernstein-text); }
+
+  /* Der Block hebt sich an, wenn man über das Ziel fährt */
+  @media (hover: hover) {
+    .ziel:hover .sub {
+      transform: translate(-0.06em, -0.06em);
+      box-shadow: 0.09em 0.09em 0 var(--tinte);
+    }
+  }
+  .sub.huepf { animation: huepfen 450ms var(--feder); }
+  @keyframes huepfen {
+    0%   { transform: scale(1); }
+    40%  { transform: scale(1.12) rotate(-2deg); }
+    100% { transform: scale(1); }
+  }
+
+  .info { transition: opacity 600ms ease 520ms, transform 700ms var(--schwung) 520ms; }
+  .info p { margin: 0 0 1.25rem; }
+  .info .klein { font-size: 1rem; color: var(--leise); }
+
+  /* Ausgangszustand vor dem Einblenden, nur wenn das Skript läuft */
+  .js .ziel:not(.sichtbar)::before { transform: scaleX(0); }
+  .js .ziel:not(.sichtbar) .sub { clip-path: inset(0 100% 0 0); }
+  .js .ziel:not(.sichtbar) .rest { opacity: 0; transform: translateY(0.25em); }
+  .js .ziel:not(.sichtbar) .info { opacity: 0; transform: translateY(1rem); }
+
+  .knopf {
+    display: inline-block;
+    font: inherit;
+    font-weight: 600;
+    color: var(--tinte);
+    background: var(--flaeche);
+    border: 2px solid var(--tinte);
+    padding: 0.7rem 1.1rem;
+    text-decoration: none;
+    cursor: pointer;
+    box-shadow: 0 0 0 var(--tinte);
+    transition:
+      background-color 140ms, color 140ms,
+      transform 140ms var(--schwung), box-shadow 140ms var(--schwung);
+  }
+  .knopf:hover {
+    transform: translate(-3px, -3px);
+    box-shadow: 5px 5px 0 var(--tinte);
+  }
+  .knopf:active {
+    transform: translate(0, 0);
+    box-shadow: 0 0 0 var(--tinte);
+    background: var(--tinte);
+    color: var(--nebel);
+  }
+  .knopf:focus-visible, a:focus-visible {
+    outline: 3px solid var(--bernstein);
+    outline-offset: 3px;
+  }
+  .meldung { display: block; min-height: 1.5rem; margin-top: 0.6rem; font-size: 1rem; color: var(--leise); }
+
+  .fuss {
+    margin-top: auto;
+    border-top: 1px solid var(--linie);
+    padding-top: 1.25rem;
+    font-size: 1rem;
+    color: var(--leise);
+  }
+
+  /* Wer Bewegung im System abgeschaltet hat, bekommt eine ruhige Seite */
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .js .ziel:not(.sichtbar)::before { transform: none; }
+    .js .ziel:not(.sichtbar) .sub { clip-path: inset(-0.3em); }
+    .js .ziel:not(.sichtbar) .rest,
+    .js .ziel:not(.sichtbar) .info { opacity: 1; transform: none; }
+  }
+</style>
+</head>
+<body>
+
+<div class="bloecke" aria-hidden="true">
+  <span style="--x:6%;  --y:14%; --g:3.5rem; --f:var(--gras);      --t:19s; --dx:40px;  --dy:-70px; --r:18deg"></span>
+  <span style="--x:82%; --y:8%;  --g:5rem;   --f:var(--bernstein); --t:23s; --dx:-60px; --dy:50px;  --r:-14deg; --v:-4s"></span>
+  <span style="--x:68%; --y:38%; --g:2rem;   --f:var(--tinte);     --t:17s; --dx:30px;  --dy:60px;  --r:25deg;  --v:-9s"></span>
+  <span style="--x:14%; --y:58%; --g:4.5rem; --f:var(--bernstein); --t:27s; --dx:70px;  --dy:40px;  --r:-20deg; --v:-2s"></span>
+  <span style="--x:90%; --y:66%; --g:3rem;   --f:var(--gras);      --t:21s; --dx:-50px; --dy:-60px; --r:16deg;  --v:-7s"></span>
+  <span style="--x:42%; --y:84%; --g:2.5rem; --f:var(--gras);      --t:25s; --dx:50px;  --dy:-40px; --r:-22deg; --v:-12s"></span>
+  <span style="--x:30%; --y:26%; --g:1.5rem; --f:var(--tinte);     --t:15s; --dx:-30px; --dy:50px;  --r:30deg;  --v:-5s"></span>
+  <span style="--x:56%; --y:6%;  --g:1.75rem;--f:var(--gras);      --t:22s; --dx:35px;  --dy:45px;  --r:-12deg; --v:-14s"></span>
+</div>
+
+<div class="seite">
+
+  <header class="kopf">
+    <h1>Markus Luttermann</h1>
+    <p>Von hier geht es zu meinem Minecraft-Server und zu meiner Kaffeekasse.</p>
+  </header>
+
+  <main>
+    <section class="ziel mc" aria-labelledby="mc-adresse">
+      <h2 class="adresse" id="mc-adresse"><span class="sub">mc</span><span class="rest">.lutter-mann.de</span></h2>
+      <div class="info">
+        <p>Mein Minecraft-Server für die Java Edition. Trag die Adresse im Spiel unter „Mehrspieler“ als neuen Server ein.</p>
+        <p class="klein">Der Server hat eine Whitelist. Schick mir deinen Spielernamen, dann schalte ich dich frei.</p>
+        <button class="knopf" type="button" id="kopieren" data-adresse="mc.lutter-mann.de">Adresse kopieren</button>
+        <span class="meldung" id="meldung" role="status" aria-live="polite"></span>
+      </div>
+    </section>
+
+    <section class="ziel kasse" aria-labelledby="kasse-adresse">
+      <h2 class="adresse" id="kasse-adresse"><span class="sub">pp</span><span class="rest">.lutter-mann.de</span></h2>
+      <div class="info">
+        <p>Meine Kaffeekasse bei PayPal. Der Server steht bei mir zu Hause und braucht rund um die Uhr Strom.</p>
+        <a class="knopf" href="https://paypal.me/MarkusLuttermann" rel="noopener">PayPal öffnen</a>
+      </div>
+    </section>
+  </main>
+
+  <footer class="fuss">© Markus Luttermann. Läuft mit Glasfaser.</footer>
+
+</div>
+
+<script>
+  (function () {
+    /* Ziele einblenden, sobald sie ins Bild kommen */
+    var ziele = document.querySelectorAll('.ziel');
+    var zeigen = function (el) { el.classList.add('sichtbar'); };
+    if ('IntersectionObserver' in window) {
+      var waechter = new IntersectionObserver(function (eintraege) {
+        eintraege.forEach(function (e) {
+          if (e.isIntersecting) { zeigen(e.target); waechter.unobserve(e.target); }
+        });
+      }, { threshold: 0.15 });
+      ziele.forEach(function (el) { waechter.observe(el); });
+    } else {
+      ziele.forEach(zeigen);
+    }
+    /* Sicherheitsnetz: nach kurzer Zeit ist alles sichtbar, was im Bild liegt */
+    setTimeout(function () {
+      ziele.forEach(function (el) {
+        if (el.getBoundingClientRect().top < window.innerHeight) { zeigen(el); }
+      });
+    }, 1500);
+
+    /* Adresse kopieren */
+    var knopf = document.getElementById('kopieren');
+    var meldung = document.getElementById('meldung');
+    var block = document.querySelector('.mc .sub');
+    var text = knopf.textContent;
+    knopf.addEventListener('click', function () {
+      var adresse = knopf.getAttribute('data-adresse');
+      var fertig = function () {
+        knopf.textContent = 'Adresse kopiert';
+        meldung.textContent = '';
+        block.classList.remove('huepf');
+        void block.offsetWidth;
+        block.classList.add('huepf');
+        setTimeout(function () { knopf.textContent = text; }, 2000);
+      };
+      var vonHand = function () {
+        meldung.textContent = 'Kopieren ist hier gesperrt. Tipp die Adresse von Hand ein: ' + adresse;
+      };
+      try {
+        navigator.clipboard.writeText(adresse).then(fertig, vonHand);
+      } catch (e) {
+        vonHand();
+      }
+    });
+  })();
+</script>
+</body>
+</html>
