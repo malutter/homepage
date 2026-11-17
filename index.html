@@ -63,7 +63,8 @@
     height: var(--g);
     background: var(--f);
     opacity: 0.22;
-    animation: treiben calc(var(--t) * 0.5) ease-in-out var(--v, 0s) infinite alternate;
+    /* Tempo: Faktor hinter var(--t). Kleiner = schneller, größer = langsamer */
+    animation: treiben calc(var(--t) * 0.8) ease-in-out var(--v, 0s) infinite alternate;
   }
   @keyframes treiben {
     from { transform: translate3d(0, 0, 0) rotate(0deg) scale(0.85); }
@@ -143,8 +144,6 @@
   @media (min-width: 56rem) {
     .ziel { grid-template-columns: 1fr 19rem; align-items: center; }
     .ziel .info { text-align: center; }
-    .ziel.ueber { grid-template-columns: 1fr 1fr; align-items: start; }
-    .ziel.ueber .info { text-align: left; }
   }
 
   /* Die Adresse selbst ist das Bild der Seite */
@@ -174,7 +173,6 @@
   .mc .sub { background: var(--gras); color: var(--gras-text); }
   .kasse .sub { background: var(--bernstein); color: var(--bernstein-text); }
   .nas .sub { background: var(--tinte); color: var(--nebel); }
-  .ueber .sub { background: var(--gras); color: var(--gras-text); }
   @media (hover: hover) {
     .ziel.nas:hover .sub { box-shadow: 0.09em 0.09em 0 var(--bernstein); }
   }
@@ -197,17 +195,6 @@
   .info p { margin: 0 0 1.25rem; }
   .info .klein { font-size: 1rem; color: var(--leise); }
 
-  /* Info-Seite: Steckbrief */
-  .fakten {
-    margin: 0 0 1.5rem;
-    display: grid;
-    grid-template-columns: max-content 1fr;
-    gap: 0.6rem 1.5rem;
-  }
-  .fakten dt { color: var(--leise); }
-  .fakten dd { margin: 0; font-weight: 600; }
-  /* Gelb markierte Stellen sind Platzhalter, die noch ersetzt werden müssen */
-  .platz { background: var(--bernstein); color: var(--bernstein-text); padding: 0 0.3em; font-weight: 600; }
 
   /* Ausgangszustand vor dem Einblenden, nur wenn das Skript läuft */
   .js .ziel:not(.sichtbar)::before { transform: scaleX(0); }
@@ -243,6 +230,18 @@
   .knopf:focus-visible, a:focus-visible {
     outline: 3px solid var(--bernstein);
     outline-offset: 3px;
+  }
+  /* Ausgegrauter Knopf für Funktionen, die noch fehlen */
+  .knopf.aus,
+  .knopf.aus:hover,
+  .knopf.aus:active {
+    color: var(--leise);
+    background: transparent;
+    border-color: var(--linie);
+    border-style: dashed;
+    transform: none;
+    box-shadow: none;
+    cursor: not-allowed;
   }
   .meldung { display: block; min-height: 1.5rem; margin-top: 0.6rem; font-size: 1rem; color: var(--leise); }
 
@@ -296,7 +295,7 @@
 
   <main>
    <div class="ansicht" id="home">
-    <p class="einleitung">Von hier geht es zu meiner Kaffeekasse, zu meinem Minecraft-Server und zu meinem NAS.</p>
+    <p class="einleitung">Hier findest du meine persönlichen Links.</p>
 
     <section class="ziel kasse" aria-labelledby="kasse-adresse">
       <h2 class="adresse" id="kasse-adresse"><span class="sub">pp</span><span class="rest">.lutter-mann.de</span></h2>
@@ -320,29 +319,19 @@
       <h2 class="adresse" id="nas-adresse"><span class="sub">nas</span><span class="rest">.lutter-mann.de</span></h2>
       <div class="info">
         <p>Die Oberfläche meines NAS. Der Zugang ist privat und durch eine Anmeldung geschützt.</p>
-        <a class="knopf" href="https://nas.lutter-mann.de" rel="noopener">NAS öffnen</a>
+        <p class="klein">Diese Funktion wird noch eingerichtet.</p>
+        <span class="knopf aus" aria-disabled="true">NAS öffnen</span>
       </div>
     </section>
    </div>
 
    <div class="ansicht" id="info">
-    <p class="einleitung">Ein paar Dinge über mich.</p>
+    <p class="einleitung">Weitere Infos folgen.</p>
 
-    <section class="ziel ueber" aria-labelledby="ueber-titel">
-      <h2 class="adresse" id="ueber-titel"><span class="sub">Über</span><span class="rest">mich</span></h2>
-      <div class="info">
-        <dl class="fakten">
-          <dt>Name</dt><dd>Markus Luttermann</dd>
-          <dt>Beruf</dt><dd>Elektroingenieur</dd>
-          <dt>Leidenschaft</dt><dd>Hardware-Entwicklung und Gaming</dd>
-        </dl>
-        <p>Ich bin Elektroingenieur mit einer Leidenschaft für Hardware-Entwicklung. Was mich im Beruf antreibt, hört nach Feierabend nicht auf: Ich spiele gern und betreibe dafür meinen eigenen Minecraft-Server auf dem NAS zu Hause. Technik will ich nicht nur benutzen, sondern verstehen und selbst bauen.</p>
-      </div>
-    </section>
    </div>
   </main>
 
-  <footer class="fuss">© Markus Luttermann. Läuft mit Glasfaser.</footer>
+  <footer class="fuss">© Markus Luttermann</footer>
 
 </div>
 
