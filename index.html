@@ -6,10 +6,18 @@
 <title>Markus Luttermann</title>
 <meta name="description" content="Minecraft-Server und Kaffeekasse von Markus Luttermann.">
 <script>document.documentElement.classList.add('js');</script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
 <style>
+  /* Schrift: liegt als Datei im eigenen GitHub-Repository neben dieser Seite.
+     Es wird nichts von Google oder anderen fremden Servern geladen. */
+  @font-face {
+    font-family: "Bricolage Grotesque";
+    src: url("bricolage-grotesque.woff2") format("woff2-variations"),
+         url("bricolage-grotesque.woff2") format("woff2");
+    font-weight: 200 800;
+    font-style: normal;
+    font-display: swap;
+  }
+
   /* Farben und Maße an einer Stelle, damit sie leicht zu ändern sind */
   :root {
     --nebel: #E8EEF0;      /* Hintergrund */
@@ -43,7 +51,9 @@
   body {
     margin: 0;
     color: var(--tinte);
-    font-family: "Bricolage Grotesque", system-ui, sans-serif;
+    /* Zuerst die eigene Schrift, falls die Datei fehlt die Systemschriften */
+    font-family: "Bricolage Grotesque", "Avenir Next", "Segoe UI Variable Display", "Segoe UI",
+      system-ui, -apple-system, Roboto, "Helvetica Neue", Arial, sans-serif;
     font-size: 1.125rem;
     line-height: 1.5;
     overflow-x: hidden;
