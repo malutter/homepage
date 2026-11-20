@@ -154,7 +154,7 @@
     transition: transform 900ms var(--schwung);
   }
   @media (min-width: 56rem) {
-    .ziel { grid-template-columns: 1fr 19rem; align-items: center; }
+    .ziel { grid-template-columns: 1fr 22rem; align-items: center; }
     .ziel .info { text-align: center; }
   }
 
@@ -228,6 +228,34 @@
   .status[data-zustand="online"] .punkt { background: var(--gras); animation: pulsieren 2.4s ease-in-out infinite; }
   .status[data-zustand="offline"] { border-color: var(--fehler); }
   .status[data-zustand="offline"] .punkt { background: var(--fehler); }
+  .status .zeilen { display: flex; flex-direction: column; text-align: left; line-height: 1.3; }
+  #mc-status-text { white-space: nowrap; }
+  .status .stand { font-size: 0.85rem; font-weight: 400; color: var(--leise); }
+  /* Statusfeld und Knopf zum Aktualisieren nebeneinander */
+  .statusleiste {
+    display: inline-flex;
+    align-items: stretch;
+    gap: 0.5rem;
+    margin: 0 0 1.25rem;
+  }
+  .statusleiste .status { margin: 0; }
+  .neu {
+    display: inline-grid;
+    place-items: center;
+    width: 2.6rem;
+    padding: 0;
+    color: var(--tinte);
+    background: transparent;
+    border: 2px solid var(--linie);
+    cursor: pointer;
+    transition: border-color 140ms, color 140ms;
+  }
+  .neu:hover { border-color: var(--tinte); }
+  .neu:focus-visible { outline: 3px solid var(--bernstein); outline-offset: 3px; }
+  .neu svg { width: 1.15rem; height: 1.15rem; }
+  .neu[disabled] { cursor: wait; color: var(--leise); }
+  .neu.dreht svg { animation: drehen 800ms linear infinite; }
+  @keyframes drehen { to { transform: rotate(360deg); } }
   @keyframes pulsieren {
     0%, 100% { opacity: 1; }
     50%      { opacity: 0.35; }
@@ -281,7 +309,17 @@
     box-shadow: none;
     cursor: not-allowed;
   }
-  .meldung { display: block; min-height: 1.5rem; margin-top: 0.6rem; font-size: 1rem; color: var(--leise); }
+  /* Die Meldung unter dem Kopieren-Knopf nimmt keinen Platz ein,
+     damit die rechte Spalte genau mittig neben der Adresse steht */
+  .info { position: relative; }
+  .meldung {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: calc(100% + 0.6rem);
+    font-size: 1rem;
+    color: var(--leise);
+  }
 
   .fuss {
     margin-top: auto;
@@ -346,9 +384,17 @@
     <section class="ziel mc" aria-labelledby="mc-adresse">
       <h2 class="adresse" id="mc-adresse"><span class="sub">mc</span><span class="rest">.lutter-mann.de</span></h2>
       <div class="info">
-        <p class="status" id="mc-status" data-zustand="laden" role="status" aria-live="polite">
-          <span class="punkt" aria-hidden="true"></span><span id="mc-status-text">Status wird abgefragt</span>
-        </p>
+        <div class="statusleiste">
+          <p class="status" id="mc-status" data-zustand="laden" role="status" aria-live="polite">
+            <span class="punkt" aria-hidden="true"></span><span class="zeilen"><span id="mc-status-text">Status wird abgefragt</span><span class="stand" id="mc-status-stand"></span></span>
+          </p>
+          <button class="neu" type="button" id="mc-neu" aria-label="Status aktualisieren" title="Status aktualisieren">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="square" aria-hidden="true">
+              <path d="M20 12a8 8 0 1 1-2.34-5.66"/>
+              <path d="M20 4v5h-5"/>
+            </svg>
+          </button>
+        </div>
         <p>Mein Minecraft-Server für die Java Edition. Trag die Adresse im Spiel unter „Mehrspieler“ als neuen Server ein.</p>
         <p class="klein">Der Server hat eine Whitelist. Schick mir deinen Spielernamen, dann schalte ich dich frei.</p>
         <button class="knopf" type="button" id="kopieren" data-adresse="mc.lutter-mann.de">Adresse kopieren</button>
@@ -448,16 +494,27 @@
       }
     });
 
-    /* Serverstatus: fragt mcsrvstat.us ab und aktualisiert alle zwei Minuten */
+    /* Serverstatus: fragt mcsrvstat.us ab und aktualisiert jede Minute */
     var MC_STATUS_ADRESSE = 'mc.lutter-mann.de';
     var status = document.getElementById('mc-status');
     var statusText = document.getElementById('mc-status-text');
+    var statusStand = document.getElementById('mc-status-stand');
     var setzeStatus = function (zustand, inhalt) {
       status.setAttribute('data-zustand', zustand);
       statusText.textContent = inhalt;
+      var jetzt = new Date();
+      var uhrzeit = ('0' + jetzt.getHours()).slice(-2) + ':' + ('0' + jetzt.getMinutes()).slice(-2);
+      statusStand.textContent = 'geprüft um ' + uhrzeit + ' Uhr';
     };
+    var neuKnopf = document.getElementById('mc-neu');
     var frageStatus = function () {
-      fetch('https://api.mcsrvstat.us/3/' + encodeURIComponent(MC_STATUS_ADRESSE))
+      neuKnopf.disabled = true;
+      neuKnopf.classList.add('dreht');
+      var beginn = Date.now();
+      /* Der Zeitstempel in der Adresse und no-store verhindern,
+         dass der Browser eine alte Antwort aus seinem Zwischenspeicher nimmt */
+      var url = 'https://api.mcsrvstat.us/3/' + encodeURIComponent(MC_STATUS_ADRESSE) + '?t=' + Date.now();
+      fetch(url, { cache: 'no-store' })
         .then(function (antwort) { if (!antwort.ok) { throw new Error(); } return antwort.json(); })
         .then(function (daten) {
           if (daten && daten.online) {
@@ -470,10 +527,22 @@
             setzeStatus('offline', 'Gerade offline');
           }
         })
-        .catch(function () { setzeStatus('fehler', 'Status gerade nicht abrufbar'); });
+        .catch(function () { setzeStatus('fehler', 'Status gerade nicht abrufbar'); })
+        .then(function () {
+          /* Das Symbol dreht sich mindestens kurz, damit der Klick sichtbar ist */
+          setTimeout(function () {
+            neuKnopf.disabled = false;
+            neuKnopf.classList.remove('dreht');
+          }, Math.max(0, 600 - (Date.now() - beginn)));
+        });
     };
+    neuKnopf.addEventListener('click', frageStatus);
     frageStatus();
-    setInterval(frageStatus, 120000);
+    setInterval(frageStatus, 60000);
+    /* Sofort neu prüfen, wenn jemand zum Tab zurückkehrt */
+    document.addEventListener('visibilitychange', function () {
+      if (document.visibilityState === 'visible') { frageStatus(); }
+    });
   })();
 </script>
 </body>
