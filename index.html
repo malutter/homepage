@@ -21,6 +21,7 @@
     --gras-text: #FFFFFF;
     --bernstein: #F2B233;  /* Kaffeekasse */
     --bernstein-text: #12222E;
+    --fehler: #B3261E;     /* Server offline */
     --schwung: cubic-bezier(0.2, 0.8, 0.2, 1);
     --feder: cubic-bezier(0.3, 1.6, 0.5, 1);
   }
@@ -33,6 +34,7 @@
       --linie: #2B4050;
       --gras: #4FA853;
       --gras-text: #0B1A10;
+      --fehler: #F2B8B5;
     }
   }
 
@@ -195,6 +197,32 @@
   .info p { margin: 0 0 1.25rem; }
   .info .klein { font-size: 1rem; color: var(--leise); }
 
+  /* Live-Status des Minecraft-Servers */
+  .status {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    margin: 0 0 1.25rem;
+    padding: 0.35rem 0.75rem;
+    border: 2px solid var(--linie);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .status .punkt {
+    width: 0.7rem;
+    height: 0.7rem;
+    background: var(--linie);
+    flex: none;
+  }
+  .status[data-zustand="online"] { border-color: var(--gras); }
+  .status[data-zustand="online"] .punkt { background: var(--gras); animation: pulsieren 2.4s ease-in-out infinite; }
+  .status[data-zustand="offline"] { border-color: var(--fehler); }
+  .status[data-zustand="offline"] .punkt { background: var(--fehler); }
+  @keyframes pulsieren {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.35; }
+  }
+
 
   /* Ausgangszustand vor dem Einblenden, nur wenn das Skript läuft */
   .js .ziel:not(.sichtbar)::before { transform: scaleX(0); }
@@ -308,6 +336,9 @@
     <section class="ziel mc" aria-labelledby="mc-adresse">
       <h2 class="adresse" id="mc-adresse"><span class="sub">mc</span><span class="rest">.lutter-mann.de</span></h2>
       <div class="info">
+        <p class="status" id="mc-status" data-zustand="laden" role="status" aria-live="polite">
+          <span class="punkt" aria-hidden="true"></span><span id="mc-status-text">Status wird abgefragt</span>
+        </p>
         <p>Mein Minecraft-Server für die Java Edition. Trag die Adresse im Spiel unter „Mehrspieler“ als neuen Server ein.</p>
         <p class="klein">Der Server hat eine Whitelist. Schick mir deinen Spielernamen, dann schalte ich dich frei.</p>
         <button class="knopf" type="button" id="kopieren" data-adresse="mc.lutter-mann.de">Adresse kopieren</button>
@@ -406,6 +437,33 @@
         vonHand();
       }
     });
+
+    /* Serverstatus: fragt mcsrvstat.us ab und aktualisiert alle zwei Minuten */
+    var MC_STATUS_ADRESSE = 'mc.lutter-mann.de';
+    var status = document.getElementById('mc-status');
+    var statusText = document.getElementById('mc-status-text');
+    var setzeStatus = function (zustand, inhalt) {
+      status.setAttribute('data-zustand', zustand);
+      statusText.textContent = inhalt;
+    };
+    var frageStatus = function () {
+      fetch('https://api.mcsrvstat.us/3/' + encodeURIComponent(MC_STATUS_ADRESSE))
+        .then(function (antwort) { if (!antwort.ok) { throw new Error(); } return antwort.json(); })
+        .then(function (daten) {
+          if (daten && daten.online) {
+            var p = daten.players || {};
+            var anzahl = typeof p.online === 'number' ? p.online : 0;
+            var spieler = anzahl === 1 ? '1 Spieler' : anzahl + ' Spieler';
+            var max = typeof p.max === 'number' ? ' von ' + p.max : '';
+            setzeStatus('online', 'Online, ' + spieler + max);
+          } else {
+            setzeStatus('offline', 'Gerade offline');
+          }
+        })
+        .catch(function () { setzeStatus('fehler', 'Status gerade nicht abrufbar'); });
+    };
+    frageStatus();
+    setInterval(frageStatus, 120000);
   })();
 </script>
 </body>
