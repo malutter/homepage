@@ -461,36 +461,69 @@
       }
     });
 
-    /* Serverstatus: fragt mcsrvstat.us ab und aktualisiert jede Minute */
+    /* Serverstatus
+       Zuerst wird mcstatus.io gefragt (kurzer Zwischenspeicher, etwa 1 Minute).
+       Antwortet der Dienst nicht, wird mcsrvstat.us gefragt (Zwischenspeicher 5 Minuten).
+       Die angezeigte Uhrzeit ist der Zeitpunkt, an dem der Dienst den Server
+       tatsächlich abgefragt hat. */
     var MC_STATUS_ADRESSE = 'mc.lutter-mann.de';
     var status = document.getElementById('mc-status');
     var statusText = document.getElementById('mc-status-text');
     var statusStand = document.getElementById('mc-status-stand');
-    var setzeStatus = function (zustand, inhalt) {
+    var alsUhrzeit = function (ms) {
+      var d = (typeof ms === 'number' && ms > 0) ? new Date(ms) : new Date();
+      return ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    };
+    /* Zeitangaben der Dienste kommen in Sekunden oder Millisekunden */
+    var inMs = function (wert) {
+      if (typeof wert !== 'number') { return null; }
+      return wert < 1e12 ? wert * 1000 : wert;
+    };
+    var setzeStatus = function (zustand, inhalt, zeitpunkt) {
       status.setAttribute('data-zustand', zustand);
       statusText.textContent = inhalt;
-      var jetzt = new Date();
-      var uhrzeit = ('0' + jetzt.getHours()).slice(-2) + ':' + ('0' + jetzt.getMinutes()).slice(-2);
-      statusStand.textContent = 'geprüft um ' + uhrzeit + ' Uhr';
+      statusStand.textContent = 'Stand ' + alsUhrzeit(zeitpunkt) + ' Uhr';
+    };
+    var zeigeErgebnis = function (online, anzahl, max, zeitpunkt) {
+      if (online) {
+        var spieler = anzahl === 1 ? '1 Spieler' : anzahl + ' Spieler';
+        var von = typeof max === 'number' ? ' von ' + max : '';
+        setzeStatus('online', 'Online, ' + spieler + von, zeitpunkt);
+      } else {
+        setzeStatus('offline', 'Gerade offline', zeitpunkt);
+      }
+    };
+    var holeJson = function (url) {
+      return fetch(url, { cache: 'no-store' })
+        .then(function (antwort) { if (!antwort.ok) { throw new Error('HTTP ' + antwort.status); } return antwort.json(); });
+    };
+    var vonMcstatus = function () {
+      return holeJson('https://api.mcstatus.io/v2/status/java/' + encodeURIComponent(MC_STATUS_ADRESSE))
+        .then(function (d) {
+          if (!d || typeof d.online !== 'boolean') { throw new Error('unerwartete Antwort'); }
+          var p = d.players || {};
+          zeigeErgebnis(d.online, typeof p.online === 'number' ? p.online : 0, p.max, inMs(d.retrieved_at));
+        });
+    };
+    var vonMcsrvstat = function () {
+      return holeJson('https://api.mcsrvstat.us/3/' + encodeURIComponent(MC_STATUS_ADRESSE))
+        .then(function (d) {
+          if (!d || typeof d.online !== 'boolean') { throw new Error('unerwartete Antwort'); }
+          var p = d.players || {};
+          var zeit = d.debug ? inMs(d.debug.cachetime) : null;
+          zeigeErgebnis(d.online, typeof p.online === 'number' ? p.online : 0, p.max, zeit);
+        });
     };
     var frageStatus = function () {
-      /* Der Zeitstempel in der Adresse und no-store verhindern,
-         dass der Browser eine alte Antwort aus seinem Zwischenspeicher nimmt */
-      var url = 'https://api.mcsrvstat.us/3/' + encodeURIComponent(MC_STATUS_ADRESSE) + '?t=' + Date.now();
-      fetch(url, { cache: 'no-store' })
-        .then(function (antwort) { if (!antwort.ok) { throw new Error(); } return antwort.json(); })
-        .then(function (daten) {
-          if (daten && daten.online) {
-            var p = daten.players || {};
-            var anzahl = typeof p.online === 'number' ? p.online : 0;
-            var spieler = anzahl === 1 ? '1 Spieler' : anzahl + ' Spieler';
-            var max = typeof p.max === 'number' ? ' von ' + p.max : '';
-            setzeStatus('online', 'Online, ' + spieler + max);
-          } else {
-            setzeStatus('offline', 'Gerade offline');
-          }
+      vonMcstatus()
+        .catch(function (fehler) {
+          console.warn('mcstatus.io nicht erreichbar, frage mcsrvstat.us', fehler);
+          return vonMcsrvstat();
         })
-        .catch(function () { setzeStatus('fehler', 'Status gerade nicht abrufbar'); });
+        .catch(function (fehler) {
+          console.warn('Serverstatus nicht abrufbar', fehler);
+          setzeStatus('fehler', 'Status gerade nicht abrufbar');
+        });
     };
     frageStatus();
     setInterval(frageStatus, 60000);
